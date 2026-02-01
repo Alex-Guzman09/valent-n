@@ -74,6 +74,10 @@
     @keyframes fadeIn {
         from { opacity: 0; } to { opacity: 1; }
     }
+
+    #sadContainer {
+        margin-top: 20px;
+    }
 </style>
 </head>
 <body>
@@ -83,16 +87,12 @@
 <button id="yesBtn">Sí</button>
 <button id="noBtn">No</button>
 
-<!-- AUDIO: ajusta las rutas según dónde los subas -->
-<audio id="yesMusic">
-    <source src="ZombieLady.mp3" type="audio/mpeg">
-</audio>
-
-<audio id="noMusic">
-    <source src="SickOfMyself.mp3" type="audio/mpeg">
-</audio>
+<!-- AUDIO (no uses <source>, mejor src directo) -->
+<audio id="yesMusic" src="ZombieLady.mp3"></audio>
+<audio id="noMusic" src="SickOfMyself.mp3"></audio>
 
 <div id="hearts"></div>
+<div id="sadContainer"></div>
 
 <script>
 let yesBtn = document.getElementById("yesBtn");
@@ -113,58 +113,20 @@ function createHeart() {
     document.getElementById("hearts").appendChild(heart);
     setTimeout(() => heart.remove(), 4000);
 }
-
 setInterval(createHeart, 500);
 
 
-/* BOTÓN NO — Canción triste + perrito triste */
+/* BOTÓN NO — mantiene la página y deja seguir */
 noBtn.addEventListener("click", function () {
 
+    // Agrandar botón Sí cada vez
+    size += 10;
+    yesBtn.style.fontSize = size + "px";
+    yesBtn.style.padding = (size/2) + "px " + size + "px";
+
+    // Música triste
     yesMusic.pause();
     yesMusic.currentTime = 0;
 
-    noMusic.currentTime = 70; // 1:10 recomendado
-    noMusic.volume = 0.7;
-    noMusic.play();
-
-    document.body.innerHTML = `
-        <h1>Oh... 😢</h1>
-        <p>Me rompiste el corazoncito 💔</p>
-
-        <!-- Ajusta la ruta -->
-        <img src="perrito-triste.png" 
-             alt="Perrito triste"
-             style="width:250px;margin-top:20px;">
-
-        <div id="hearts"></div>
-    `;
-});
-
-
-/* BOTÓN SÍ — Canción bonita + perrito feliz */
-yesBtn.addEventListener("click", function () {
-
-    noMusic.pause();
-    noMusic.currentTime = 0;
-
-    yesMusic.currentTime = 48; // 0:48 recomendado
-    yesMusic.volume = 0.7;
-    yesMusic.play();
-
-    document.body.innerHTML = `
-        <h1 style="font-size:50px; animation: heartbeat 1s infinite;">
-            ¡Sabía que dirías que sí! ❤️🥰
-        </h1>
-
-        <!-- Ajusta la ruta -->
-        <img src="perrito-feliz.gif"
-             alt="Perrito feliz"
-             style="width:250px;margin-top:20px;">
-
-        <div id="hearts"></div>
-    `;
-});
-</script>
-
-</body>
-</html>
+    noMusic.load();
+    noMusic.onloadedd
