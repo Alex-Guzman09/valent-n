@@ -66,20 +66,6 @@
         animation: heartbeat 1s infinite;
     }
 
-    /* Diagnóstico visible en la página */
-    #debug {
-        margin-top: 30px;
-        padding: 10px 20px;
-        background: #fff3cd;
-        border: 1px solid #ffc107;
-        border-radius: 8px;
-        font-size: 14px;
-        color: #856404;
-        display: inline-block;
-        text-align: left;
-        min-width: 300px;
-    }
-
     @keyframes heartbeat {
         0%   { transform: scale(1); }
         25%  { transform: scale(1.1); }
@@ -112,17 +98,10 @@
         <button id="yesBtn">Sí</button>
         <button id="noBtn">No</button>
         <div id="sadContainer"></div>
-
-        <!-- Este bloque solo es para diagnóstico, lo borras después -->
-        <div id="debug">
-            <strong>Diagnóstico de audios:</strong><br>
-            <span id="debugNo">noMusic: cargando...</span><br>
-            <span id="debugYes">yesMusic: cargando...</span>
-        </div>
     </div>
 
     <div id="yesScreen">
-        <h1>¡Sabía que dirías que sí! ❤️🥰</h1>
+        <h1>¡Sabía que no te negarías! ❤️🥰</h1>
         <img src="perrito-feliz.gif" alt="Perrito feliz" style="width:250px; margin-top:20px;">
     </div>
 </div>
@@ -135,25 +114,8 @@
     const initScreen   = document.getElementById("initScreen");
     const yesScreen    = document.getElementById("yesScreen");
     const sadContainer = document.getElementById("sadContainer");
-    const debugNo      = document.getElementById("debugNo");
-    const debugYes     = document.getElementById("debugYes");
 
     let size = 18;
-
-    /* ── Diagnóstico: reportar estado de cada audio al cargarse ── */
-    noMusic.addEventListener("canplaythrough", function() {
-        debugNo.textContent = "noMusic ✅ duración: " + noMusic.duration.toFixed(1) + "s | src: " + noMusic.src;
-    });
-    noMusic.addEventListener("error", function(e) {
-        debugNo.textContent = "noMusic ❌ ERROR | networkState: " + noMusic.networkState + " | src: " + noMusic.src;
-    });
-
-    yesMusic.addEventListener("canplaythrough", function() {
-        debugYes.textContent = "yesMusic ✅ duración: " + yesMusic.duration.toFixed(1) + "s | src: " + yesMusic.src;
-    });
-    yesMusic.addEventListener("error", function(e) {
-        debugYes.textContent = "yesMusic ❌ ERROR | networkState: " + yesMusic.networkState + " | src: " + yesMusic.src;
-    });
 
     /* ── Corazones flotantes ── */
     function createHeart() {
@@ -175,15 +137,7 @@
 
         var playPromise = audio.play();
         if (playPromise !== undefined) {
-            playPromise.then(function() {
-                // Reportar éxito en el diagnóstico
-                if (audio.id === "noMusic") debugNo.textContent += " | ▶ jugando desde " + seconds + "s";
-                if (audio.id === "yesMusic") debugYes.textContent += " | ▶ jugando desde " + seconds + "s";
-            }).catch(function(error) {
-                // Reportar error en el diagnóstico
-                if (audio.id === "noMusic") debugNo.textContent += " | ❌ play() fallido: " + error.message;
-                if (audio.id === "yesMusic") debugYes.textContent += " | ❌ play() fallido: " + error.message;
-            });
+            playPromise.catch(function() {});
         }
     }
 
@@ -198,7 +152,7 @@
         playFrom(noMusic, 0, 0.7);
 
         sadContainer.innerHTML =
-            '<p style="font-size:22px;">Oh… 😢 Me rompiste el corazoncito 💔</p>' +
+            '<p style="font-size:22px;">Lo siento, sigue intentando 🥰</p>' +
             '<img src="perrito-triste.png" alt="Perrito triste" style="width:220px; margin-top:10px;">';
     });
 
