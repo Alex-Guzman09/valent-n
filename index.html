@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>¿Quieres ser mi Valentín?</title>
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -11,7 +12,9 @@
         background-color: #ffe6ea;
         overflow-x: hidden;
     }
+
     h1 { animation: fadeIn 1.5s ease; }
+
     button {
         padding: 15px 30px;
         font-size: 18px;
@@ -19,13 +22,15 @@
         cursor: pointer;
         border-radius: 10px;
         border: none;
-        transition: 0.3s ease;
+        transition: 0.2s ease;
     }
+
     #yesBtn {
         background-color: #ff4d6d;
         color: white;
         animation: heartbeat 1.2s infinite;
     }
+
     #noBtn { background-color: #999; color: white; }
     #noBtn:hover { animation: wiggle 0.4s ease-in-out infinite; }
 
@@ -38,22 +43,34 @@
         height: 100%;
         pointer-events: none;
         overflow: hidden;
+        z-index: 0;
     }
+
     .heart {
         position: absolute;
-        color: #ff4d6d;
         font-size: 20px;
         animation: floatUp 4s linear infinite;
     }
 
-    /* Mensaje de respuesta */
-    #message {
-        margin-top: 30px;
-        font-size: 24px;
-        font-weight: bold;
-        color: #ff4d6d;
-        min-height: 40px;
-        animation: fadeIn 0.6s ease;
+    /* Contenido principal (por encima de corazones) */
+    #mainContent {
+        position: relative;
+        z-index: 1;
+    }
+
+    #sadContainer {
+        margin-top: 20px;
+    }
+
+    /* Pantalla final "Sí" */
+    #yesScreen {
+        display: none;
+        margin-top: 40px;
+    }
+
+    #yesScreen h1 {
+        font-size: 50px;
+        animation: heartbeat 1s infinite;
     }
 
     /* Animaciones */
@@ -62,15 +79,18 @@
         25%  { transform: scale(1.1); }
         50%  { transform: scale(1); }
     }
+
     @keyframes wiggle {
         0%, 100% { transform: rotate(0); }
         25%      { transform: rotate(3deg); }
         75%      { transform: rotate(-3deg); }
     }
+
     @keyframes floatUp {
         0%   { transform: translateY(100vh) translateX(0); opacity: 1; }
         100% { transform: translateY(-10vh) translateX(20px); opacity: 0; }
     }
+
     @keyframes fadeIn {
         from { opacity: 0; }
         to   { opacity: 1; }
@@ -79,26 +99,44 @@
 </head>
 <body>
 
-<h1>¿Quieres ser mi Valentín? ❤️</h1>
-<button id="yesBtn">Sí</button>
-<button id="noBtn">No</button>
-<div id="message"></div>
-
-<!-- Audios -->
+<!-- Audios: fuera de mainContent para que nunca se eliminen -->
 <audio id="yesMusic" src="ZombieLady.mp3"></audio>
 <audio id="noMusic" src="SickOfMyself.mp3"></audio>
 
-<!-- Contenedor de corazones flotantes -->
+<!-- Corazones flotantes (siempre presentes) -->
 <div id="hearts"></div>
 
-<script>
-    const yesBtn   = document.getElementById("yesBtn");
-    const noBtn    = document.getElementById("noBtn");
-    const yesMusic = document.getElementById("yesMusic");
-    const noMusic  = document.getElementById("noMusic");
-    const message  = document.getElementById("message");
+<!-- Contenido que cambia según la interacción -->
+<div id="mainContent">
 
-    let size = 18; // tamaño base del botón Sí (px)
+    <!-- Pantalla inicial -->
+    <div id="initScreen">
+        <h1>¿Quieres ser mi Valentín? ❤️</h1>
+        <button id="yesBtn">Sí</button>
+        <button id="noBtn">No</button>
+        <div id="sadContainer"></div>
+    </div>
+
+    <!-- Pantalla final (oculta al inicio) -->
+    <div id="yesScreen">
+        <h1>¡Sabía que dirías que sí! ❤️🥰</h1>
+        <img src="perrito-feliz.gif"
+             alt="Perrito feliz"
+             style="width:250px; margin-top:20px;">
+    </div>
+
+</div>
+
+<script>
+    const yesBtn       = document.getElementById("yesBtn");
+    const noBtn        = document.getElementById("noBtn");
+    const yesMusic     = document.getElementById("yesMusic");
+    const noMusic      = document.getElementById("noMusic");
+    const initScreen   = document.getElementById("initScreen");
+    const yesScreen    = document.getElementById("yesScreen");
+    const sadContainer = document.getElementById("sadContainer");
+
+    let size = 18;
 
     /* ── Corazones flotantes ── */
     function createHeart() {
@@ -112,45 +150,48 @@
     }
     setInterval(createHeart, 500);
 
-    /* ── Función auxiliar: reproducir audio ── */
-    function playAudio(audio) {
-        audio.currentTime = 0;   // reiniciar desde el principio
-        audio.play();            // reproducir (retorna una promesa)
+    /* ── Reproducir audio desde un punto específico ── */
+    function playFrom(audio, seconds, volume) {
+        audio.currentTime = seconds;
+        audio.volume      = volume;
+        audio.play();
     }
 
     /* ── BOTÓN "NO" ── */
     noBtn.addEventListener("click", function () {
-        // Agrandar botón Sí cada vez que se prese No
+
+        // Agrandar botón Sí
         size += 10;
         yesBtn.style.fontSize = size + "px";
         yesBtn.style.padding  = (size / 2) + "px " + size + "px";
 
-        // Detener música alegre (si estaba)
+        // Detener música alegre y poner triste
         yesMusic.pause();
         yesMusic.currentTime = 0;
+        playFrom(noMusic, 70, 0.7); // desde 1:10
 
-        // Reproducir música triste
-        playAudio(noMusic);
-
-        // Mostrar mensaje
-        message.textContent = "😢 ¡Está bien... por ahora.";
-        message.style.color = "#999";
+        // Mostrar perrito triste
+        sadContainer.innerHTML = `
+            <p style="font-size:22px;">Oh… 😢 Me rompiste el corazoncito 💔</p>
+            <img src="perrito-triste.png" 
+                 alt="Perrito triste"
+                 style="width:220px; margin-top:10px;">
+        `;
     });
 
     /* ── BOTÓN "SÍ" ── */
     yesBtn.addEventListener("click", function () {
-        // Detener música triste (si estaba)
+
+        // Detener música triste y poner alegre
         noMusic.pause();
         noMusic.currentTime = 0;
+        playFrom(yesMusic, 48, 0.7); // desde 0:48
 
-        // Reproducir música alegre
-        playAudio(yesMusic);
-
-        // Mostrar mensaje
-        message.textContent = "🎉 ¡Yay! ¡Vas a ser mi Valentín! ❤️";
-        message.style.color = "#ff4d6d";
+        // Intercambiar pantallas (sin destruir el DOM)
+        initScreen.style.display = "none";
+        yesScreen.style.display  = "block";
     });
 </script>
+
 </body>
 </html>
-
