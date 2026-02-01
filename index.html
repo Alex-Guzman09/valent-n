@@ -34,13 +34,10 @@
     #noBtn { background-color: #999; color: white; }
     #noBtn:hover { animation: wiggle 0.4s ease-in-out infinite; }
 
-    /* Corazones */
     #hearts {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         pointer-events: none;
         overflow: hidden;
         z-index: 0;
@@ -52,17 +49,13 @@
         animation: floatUp 4s linear infinite;
     }
 
-    /* Contenido principal (por encima de corazones) */
     #mainContent {
         position: relative;
         z-index: 1;
     }
 
-    #sadContainer {
-        margin-top: 20px;
-    }
+    #sadContainer { margin-top: 20px; }
 
-    /* Pantalla final "Sí" */
     #yesScreen {
         display: none;
         margin-top: 40px;
@@ -73,58 +66,65 @@
         animation: heartbeat 1s infinite;
     }
 
-    /* Animaciones */
+    /* Diagnóstico visible en la página */
+    #debug {
+        margin-top: 30px;
+        padding: 10px 20px;
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #856404;
+        display: inline-block;
+        text-align: left;
+        min-width: 300px;
+    }
+
     @keyframes heartbeat {
         0%   { transform: scale(1); }
         25%  { transform: scale(1.1); }
         50%  { transform: scale(1); }
     }
-
     @keyframes wiggle {
         0%, 100% { transform: rotate(0); }
         25%      { transform: rotate(3deg); }
         75%      { transform: rotate(-3deg); }
     }
-
     @keyframes floatUp {
         0%   { transform: translateY(100vh) translateX(0); opacity: 1; }
         100% { transform: translateY(-10vh) translateX(20px); opacity: 0; }
     }
-
     @keyframes fadeIn {
-        from { opacity: 0; }
-        to   { opacity: 1; }
+        from { opacity: 0; } to { opacity: 1; }
     }
 </style>
 </head>
 <body>
 
-<!-- Audios: fuera de mainContent para que nunca se eliminen -->
 <audio id="yesMusic" src="ZombieLady.mp3" preload="auto"></audio>
 <audio id="noMusic" src="SickOfMyself.mp3" preload="auto"></audio>
 
-<!-- Corazones flotantes (siempre presentes) -->
 <div id="hearts"></div>
 
-<!-- Contenido que cambia según la interacción -->
 <div id="mainContent">
-
-    <!-- Pantalla inicial -->
     <div id="initScreen">
         <h1>¿Quieres ser mi Valentín? ❤️</h1>
         <button id="yesBtn">Sí</button>
         <button id="noBtn">No</button>
         <div id="sadContainer"></div>
+
+        <!-- Este bloque solo es para diagnóstico, lo borras después -->
+        <div id="debug">
+            <strong>Diagnóstico de audios:</strong><br>
+            <span id="debugNo">noMusic: cargando...</span><br>
+            <span id="debugYes">yesMusic: cargando...</span>
+        </div>
     </div>
 
-    <!-- Pantalla final (oculta al inicio) -->
     <div id="yesScreen">
         <h1>¡Sabía que dirías que sí! ❤️🥰</h1>
-        <img src="perrito-feliz.gif"
-             alt="Perrito feliz"
-             style="width:250px; margin-top:20px;">
+        <img src="perrito-feliz.gif" alt="Perrito feliz" style="width:250px; margin-top:20px;">
     </div>
-
 </div>
 
 <script>
@@ -135,8 +135,25 @@
     const initScreen   = document.getElementById("initScreen");
     const yesScreen    = document.getElementById("yesScreen");
     const sadContainer = document.getElementById("sadContainer");
+    const debugNo      = document.getElementById("debugNo");
+    const debugYes     = document.getElementById("debugYes");
 
     let size = 18;
+
+    /* ── Diagnóstico: reportar estado de cada audio al cargarse ── */
+    noMusic.addEventListener("canplaythrough", function() {
+        debugNo.textContent = "noMusic ✅ duración: " + noMusic.duration.toFixed(1) + "s | src: " + noMusic.src;
+    });
+    noMusic.addEventListener("error", function(e) {
+        debugNo.textContent = "noMusic ❌ ERROR | networkState: " + noMusic.networkState + " | src: " + noMusic.src;
+    });
+
+    yesMusic.addEventListener("canplaythrough", function() {
+        debugYes.textContent = "yesMusic ✅ duración: " + yesMusic.duration.toFixed(1) + "s | src: " + yesMusic.src;
+    });
+    yesMusic.addEventListener("error", function(e) {
+        debugYes.textContent = "yesMusic ❌ ERROR | networkState: " + yesMusic.networkState + " | src: " + yesMusic.src;
+    });
 
     /* ── Corazones flotantes ── */
     function createHeart() {
@@ -150,7 +167,7 @@
     }
     setInterval(createHeart, 500);
 
-    /* ── Reproducir audio desde un punto específico ── */
+    /* ── Reproducir audio ── */
     function playFrom(audio, seconds, volume) {
         audio.pause();
         audio.currentTime = seconds;
@@ -158,26 +175,28 @@
 
         var playPromise = audio.play();
         if (playPromise !== undefined) {
-            playPromise.catch(function(error) {
-                console.warn("Audio bloqueado por el navegador:", error);
+            playPromise.then(function() {
+                // Reportar éxito en el diagnóstico
+                if (audio.id === "noMusic") debugNo.textContent += " | ▶ jugando desde " + seconds + "s";
+                if (audio.id === "yesMusic") debugYes.textContent += " | ▶ jugando desde " + seconds + "s";
+            }).catch(function(error) {
+                // Reportar error en el diagnóstico
+                if (audio.id === "noMusic") debugNo.textContent += " | ❌ play() fallido: " + error.message;
+                if (audio.id === "yesMusic") debugYes.textContent += " | ❌ play() fallido: " + error.message;
             });
         }
     }
 
     /* ── BOTÓN "NO" ── */
     noBtn.addEventListener("click", function () {
-
-        // Agrandar botón Sí cada vez
         size += 10;
         yesBtn.style.fontSize = size + "px";
         yesBtn.style.padding  = (size / 2) + "px " + size + "px";
 
-        // Detener música alegre y reproducir triste desde el inicio
         yesMusic.pause();
         yesMusic.currentTime = 0;
         playFrom(noMusic, 0, 0.7);
 
-        // Mostrar perrito triste
         sadContainer.innerHTML =
             '<p style="font-size:22px;">Oh… 😢 Me rompiste el corazoncito 💔</p>' +
             '<img src="perrito-triste.png" alt="Perrito triste" style="width:220px; margin-top:10px;">';
@@ -185,13 +204,10 @@
 
     /* ── BOTÓN "SÍ" ── */
     yesBtn.addEventListener("click", function () {
-
-        // Detener música triste y reproducir alegre
         noMusic.pause();
         noMusic.currentTime = 0;
         playFrom(yesMusic, 48, 0.7);
 
-        // Intercambiar pantallas sin destruir el DOM
         initScreen.style.display = "none";
         yesScreen.style.display  = "block";
     });
