@@ -100,8 +100,8 @@
 <body>
 
 <!-- Audios: fuera de mainContent para que nunca se eliminen -->
-<audio id="yesMusic" src="ZombieLady.mp3"></audio>
-<audio id="noMusic" src="SickOfMyself.mp3"></audio>
+<audio id="yesMusic" src="ZombieLady.mp3" preload="auto"></audio>
+<audio id="noMusic" src="SickOfMyself.mp3" preload="auto"></audio>
 
 <!-- Corazones flotantes (siempre presentes) -->
 <div id="hearts"></div>
@@ -152,42 +152,47 @@
 
     /* ── Reproducir audio desde un punto específico ── */
     function playFrom(audio, seconds, volume) {
+        audio.pause();
         audio.currentTime = seconds;
         audio.volume      = volume;
-        audio.play();
+
+        // play() retorna una promesa; si falla, no rompe el resto del script
+        var playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(function(error) {
+                console.warn("Audio bloqueado por el navegador:", error);
+            });
+        }
     }
 
     /* ── BOTÓN "NO" ── */
     noBtn.addEventListener("click", function () {
 
-        // Agrandar botón Sí
+        // Agrandar botón Sí cada vez
         size += 10;
         yesBtn.style.fontSize = size + "px";
         yesBtn.style.padding  = (size / 2) + "px " + size + "px";
 
-        // Detener música alegre y poner triste
+        // Detener música alegre y reproducir triste
         yesMusic.pause();
         yesMusic.currentTime = 0;
-        playFrom(noMusic, 70, 0.7); // desde 1:10
+        playFrom(noMusic, 70, 0.7);
 
         // Mostrar perrito triste
-        sadContainer.innerHTML = `
-            <p style="font-size:22px;">Oh… 😢 Me rompiste el corazoncito 💔</p>
-            <img src="perrito-triste.png" 
-                 alt="Perrito triste"
-                 style="width:220px; margin-top:10px;">
-        `;
+        sadContainer.innerHTML =
+            '<p style="font-size:22px;">Oh… 😢 Me rompiste el corazoncito 💔</p>' +
+            '<img src="perrito-triste.png" alt="Perrito triste" style="width:220px; margin-top:10px;">';
     });
 
     /* ── BOTÓN "SÍ" ── */
     yesBtn.addEventListener("click", function () {
 
-        // Detener música triste y poner alegre
+        // Detener música triste y reproducir alegre
         noMusic.pause();
         noMusic.currentTime = 0;
-        playFrom(yesMusic, 48, 0.7); // desde 0:48
+        playFrom(yesMusic, 48, 0.7);
 
-        // Intercambiar pantallas (sin destruir el DOM)
+        // Intercambiar pantallas sin destruir el DOM
         initScreen.style.display = "none";
         yesScreen.style.display  = "block";
     });
