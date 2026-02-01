@@ -2,18 +2,29 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>¿Quieres ser mi Valentín?</title>
 
 <style>
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
     body {
         font-family: Arial, sans-serif;
         text-align: center;
         padding-top: 80px;
         background-color: #ffe6ea;
         overflow-x: hidden;
+        min-height: 100vh;
     }
 
-    h1 { animation: fadeIn 1.5s ease; }
+    h1 {
+        animation: fadeIn 1.5s ease;
+        font-size: clamp(24px, 6vw, 42px);
+        padding: 0 16px;
+    }
 
     button {
         padding: 15px 30px;
@@ -23,6 +34,8 @@
         border-radius: 10px;
         border: none;
         transition: 0.2s ease;
+        /* Evita que iOS reduzca el tamaño del font en inputs/buttons */
+        -webkit-text-size-adjust: 100%;
     }
 
     #yesBtn {
@@ -56,14 +69,30 @@
 
     #sadContainer { margin-top: 20px; }
 
+    #sadContainer p {
+        font-size: clamp(18px, 5vw, 22px);
+        padding: 0 16px;
+    }
+
+    #sadContainer img {
+        max-width: 80vw;
+        width: 220px;
+    }
+
     #yesScreen {
         display: none;
         margin-top: 40px;
+        padding: 0 16px;
     }
 
     #yesScreen h1 {
-        font-size: 50px;
+        font-size: clamp(28px, 7vw, 50px);
         animation: heartbeat 1s infinite;
+    }
+
+    #yesScreen img {
+        max-width: 80vw;
+        width: 250px;
     }
 
     @keyframes heartbeat {
@@ -102,7 +131,7 @@
 
     <div id="yesScreen">
         <h1>¡Sabía que no te negarías! ❤️🥰</h1>
-        <img src="perrito-feliz.gif" alt="Perrito feliz" style="width:250px; margin-top:20px;">
+        <img src="perrito-feliz.gif" alt="Perrito feliz">
     </div>
 </div>
 
@@ -116,6 +145,23 @@
     const sadContainer = document.getElementById("sadContainer");
 
     let size = 18;
+
+    /* ── Unlock de audio para iOS/Safari ── */
+    /* Safari bloquea audio hasta que hay un gesto del usuario.
+       Este listener se dispara UNA sola vez al primer toque
+       y "desbloquea" ambos audios sin que se escuche nada. */
+    function unlockAudio() {
+        [yesMusic, noMusic].forEach(function(audio) {
+            audio.play().then(function() {
+                audio.pause();
+                audio.currentTime = 0;
+            }).catch(function() {});
+        });
+        document.removeEventListener("touchstart", unlockAudio);
+        document.removeEventListener("click", unlockAudio);
+    }
+    document.addEventListener("touchstart", unlockAudio, { once: true });
+    document.addEventListener("click", unlockAudio, { once: true });
 
     /* ── Corazones flotantes ── */
     function createHeart() {
@@ -152,8 +198,8 @@
         playFrom(noMusic, 0, 0.7);
 
         sadContainer.innerHTML =
-            '<p style="font-size:22px;">Sigue intentando porfavorcito</p>' +
-            '<img src="perrito-triste.png" alt="Perrito triste" style="width:220px; margin-top:10px;">';
+            '<p>Sigue intentando porfavorcito</p>' +
+            '<img src="perrito-triste.png" alt="Perrito triste">';
     });
 
     /* ── BOTÓN "SÍ" ── */
@@ -169,4 +215,3 @@
 
 </body>
 </html>
-
